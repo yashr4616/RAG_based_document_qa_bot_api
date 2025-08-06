@@ -5,7 +5,8 @@ from langchain_core.prompts import PromptTemplate
 import aiohttp
 from dotenv import load_dotenv
 load_dotenv()
-from langchain_community.document_loaders import UnstructuredFileLoader
+# from langchain_community.document_loaders import UnstructuredFileLoader
+from langchain_community.document_loaders import UnstructuredWordDocumentLoader, UnstructuredEmailLoader, PyMuPDFLoader
 from urllib.parse import urlparse
 from pydantic import BaseModel
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -136,18 +137,18 @@ async def run(req: RunRequest, _: str = Depends(verify_token)):
         tmp.write(pdf_content)
         tmp_path = tmp.name
 
-    # if file_ext == ".pdf":
-    #     loader_cls = PyMuPDFLoader
-    # elif file_ext == ".docx":
-    #     loader_cls = UnstructuredWordDocumentLoader
-    # elif file_ext in [".eml", ".msg"]:
-    #     loader_cls = UnstructuredEmailLoader
-    # else:
-    #     raise HTTPException(status_code=400, detail="Unsupported file type.")
+    if file_ext == ".pdf":
+        loader_cls = PyMuPDFLoader
+    elif file_ext == ".docx":
+        loader_cls = UnstructuredWordDocumentLoader
+    elif file_ext in [".eml", ".msg"]:
+        loader_cls = UnstructuredEmailLoader
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file type.")
 
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        loader = await run_in_threadpool(UnstructuredFileLoader, tmp_path, mode="elements")
+        loader = await run_in_threadpool(loader_cls, tmp_path)
         docs = await run_in_threadpool(loader.load)
         # docs = await load_file(tmp_path, file_ext)
         splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=100)
@@ -166,7 +167,7 @@ async def run(req: RunRequest, _: str = Depends(verify_token)):
         await run_in_threadpool(db.add_documents, batch)
     
 
-    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 8})
+    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})
 
     async def process_single_question(question: str):
         retrieved_docs = retriever.invoke(question)
