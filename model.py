@@ -150,7 +150,7 @@ async def run(req: RunRequest, _: str = Depends(verify_token)):
         loader = await run_in_threadpool(UnstructuredFileLoader, tmp_path, mode="elements")
         docs = await run_in_threadpool(loader.load)
         # docs = await load_file(tmp_path, file_ext)
-        splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=100)
         chunks = await run_in_threadpool(splitter.split_documents, docs)
 
     # session_id = str(uuid4())
