@@ -19,8 +19,6 @@ from typing import List
 import tempfile
 import asyncio
 import concurrent.futures
-# from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
-# import pdfplumber
 from langchain_core.documents import Document
 
 UPLOAD_FOLDER = "uploads"
@@ -46,7 +44,8 @@ model = ChatOpenAI(
     max_tokens=300,
     temperature=0.2,
     request_timeout=15,
-    max_retries=1
+    max_retries=1,
+    streaming=True
 )
 
 template = PromptTemplate(
@@ -56,7 +55,7 @@ You are a helpful assistant for answering questions using provided document cont
 The context may include tables (between [TABLE]...[/TABLE]). Use them carefully to answer precisely.
 
 If you don't know the answer, just say so.
-Give the response in a short conversational manner.
+Give the response in a short conversational manner in 20 words.
 
 Context: {context}
 
@@ -151,7 +150,7 @@ async def run(req: RunRequest, _: str = Depends(verify_token)):
         loader = await run_in_threadpool(loader_cls, tmp_path)
         docs = await run_in_threadpool(loader.load)
         # docs = await load_file(tmp_path, file_ext)
-        splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=100)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=100,separators=["\n\n", "\n", ". ", "? ", "! ", " ", ""])
         chunks = await run_in_threadpool(splitter.split_documents, docs)
 
     # session_id = str(uuid4())
