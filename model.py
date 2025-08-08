@@ -55,7 +55,8 @@ You are a helpful assistant for answering questions using provided document cont
 The context may include tables (between [TABLE]...[/TABLE]). Use them carefully to answer precisely.
 
 If you don't know the answer, just say so.
-Give the response in a short conversational manner in 20 words.
+If its Yes/No question answer in Yes or No way.
+Give the response not in sentence only the main thing what is asked.
 
 Context: {context}
 
