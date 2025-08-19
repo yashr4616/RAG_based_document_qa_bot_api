@@ -120,7 +120,7 @@ class RunRequest(BaseModel):
     documents: str
     questions: List[str]
 
-@app.post("/api/v1/hackrx/run")
+@app.post("/rag_qa_bot")
 async def run(req: RunRequest, _: str = Depends(verify_token)):
     async with aiohttp.ClientSession() as session:
         async with session.get(req.documents) as response:
